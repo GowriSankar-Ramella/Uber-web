@@ -3,7 +3,6 @@ import axios from "axios";
 
 export const checkCaptainStatus = createAsyncThunk("captain/checkCaptainStatus", async () => {
     try {
-        console.log("Started api call")
         const res = await axios.get(`${import.meta.env.VITE_BASE_URL}/captain/profile`, { withCredentials: true })
         return (res.data)
     } catch (error) {

@@ -12,11 +12,12 @@ import Home from "./pages/Home"
 import { useDispatch } from 'react-redux'
 import { checkCaptainStatus } from './utils/captainSlice'
 import { checkAuthStatus } from './utils/userSlice'
+import CaptainRiding from './pages/CaptainRiding'
+import Riding from './pages/Riding'
 
 function App() {
   const dispatch = useDispatch()
   useEffect(() => {
-    console.log("Dispatching..")
     dispatch(checkCaptainStatus())
     dispatch(checkAuthStatus())
   }, [])
@@ -28,6 +29,8 @@ function App() {
         <Route path="/login" element={<UserLogin />} />
         <Route path="/signup" element={<UserSignup />} />
         <Route path="/home" element={<UserProtect><Home /></UserProtect>} />
+        <Route path='/riding' element={<UserProtect><Riding /></UserProtect>} />
+        <Route path='/captain-riding' element={<CaptainRiding />} />
         <Route path="/captain-login" element={<Captainlogin />} />
         <Route path="/captain-signup" element={<CaptainSignup />} />
         <Route path="/captain-home" element={<CaptainProtect><CaptainHome /></CaptainProtect>} />

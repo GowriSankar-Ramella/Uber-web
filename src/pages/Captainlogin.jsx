@@ -28,6 +28,7 @@ const Captainlogin = () => {
             setPassword('')
         } catch (error) {
             console.log(error)
+
         }
     }
     return (
