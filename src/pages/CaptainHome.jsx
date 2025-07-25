@@ -9,6 +9,7 @@ import { useEffect } from 'react'
 import axios from 'axios'
 import { useSelector } from 'react-redux'
 import { createSocketConnection } from '../utils/socket'
+import LiveTracking from '../components/LiveTracking'
 
 const CaptainHome = () => {
 
@@ -115,8 +116,8 @@ const CaptainHome = () => {
                 </Link>
             </div>
             <div className='h-3/5'>
-                <img className='h-full w-full object-cover' src="https://miro.medium.com/v2/resize:fit:1400/0*gwMx05pqII5hbfmX.gif" alt="" />
-
+                {/* <img className='h-full w-full object-cover' src="https://miro.medium.com/v2/resize:fit:1400/0*gwMx05pqII5hbfmX.gif" alt="" /> */}
+                <LiveTracking />
             </div>
             <div className='h-2/5 p-6'>
                 <CaptainDetails />

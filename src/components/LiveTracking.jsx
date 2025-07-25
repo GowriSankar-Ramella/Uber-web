@@ -1,19 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { OlaMaps } from 'olamaps-web-sdk';
 
-const containerStyle = {
-    width: '100%',
-    height: '100%',
-};
-
-const center = {
-    lat: 17.406,
-    lng: 78.4514
-};
-
 const LiveTracking = () => {
-    const [currentPosition, setCurrentPosition] = useState(center);
+    const [currentPosition, setCurrentPosition] = useState({
+        lat: 17.406,
+        lng: 78.4514
+    });
     const [isMapReady, setIsMapReady] = useState(false);
+    const [heading, setHeading] = useState(0);
     const mapRef = useRef(null);
     const mapContainerRef = useRef(null);
 
@@ -28,7 +22,10 @@ const LiveTracking = () => {
                     style: "https://api.olamaps.io/tiles/vector/v1/styles/default-light-standard/style.json",
                     container: mapContainerRef.current,
                     center: [currentPosition.lng, currentPosition.lat],
-                    zoom: 15,
+                    zoom: 17,
+                    pitch: 45,
+                    bearing: 0,
+                    antialias: true
                 });
 
                 mapRef.current = map;
@@ -36,7 +33,7 @@ const LiveTracking = () => {
                 map.on('load', () => {
                     console.log('Map loaded successfully');
                     setIsMapReady(true);
-                    addLocationLayer(currentPosition);
+                    addUberStyleMarker(currentPosition);
                 });
 
                 map.on('error', (e) => {
@@ -60,11 +57,40 @@ const LiveTracking = () => {
         };
     }, []);
 
-    const addLocationLayer = (position) => {
+    // Create Uber-style car icon SVG
+    const createCarIcon = (rotation = 0) => {
+        return `data:image/svg+xml;base64,${btoa(`
+            <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                <g transform="rotate(${rotation} 16 16)">
+                    <!-- Car shadow -->
+                    <ellipse cx="16" cy="26" rx="8" ry="3" fill="rgba(0,0,0,0.2)"/>
+                    
+                    <!-- Car body -->
+                    <path d="M8 20 L8 16 L10 12 L22 12 L24 16 L24 20 L22 22 L10 22 Z" 
+                          fill="#000000" stroke="#FFFFFF" stroke-width="1"/>
+                    
+                    <!-- Car windows -->
+                    <path d="M10 16 L11 13 L21 13 L22 16 Z" fill="#4A90E2"/>
+                    
+                    <!-- Car wheels -->
+                    <circle cx="11" cy="21" r="2" fill="#333333" stroke="#FFFFFF" stroke-width="1"/>
+                    <circle cx="21" cy="21" r="2" fill="#333333" stroke="#FFFFFF" stroke-width="1"/>
+                    
+                    <!-- Car headlights -->
+                    <circle cx="16" cy="12" r="1" fill="#FFFF00"/>
+                </g>
+            </svg>
+        `)}`;
+    };
+
+    const addUberStyleMarker = (position) => {
         if (!mapRef.current || !isMapReady) return;
 
         try {
             // Remove existing layers and sources
+            if (mapRef.current.getLayer('accuracy-circle')) {
+                mapRef.current.removeLayer('accuracy-circle');
+            }
             if (mapRef.current.getLayer('user-location-pulse')) {
                 mapRef.current.removeLayer('user-location-pulse');
             }
@@ -90,46 +116,83 @@ const LiveTracking = () => {
                 }
             });
 
-            // Add main marker layer
+            // Add accuracy circle (light blue background)
             mapRef.current.addLayer({
-                'id': 'user-location',
+                'id': 'accuracy-circle',
                 'type': 'circle',
                 'source': 'user-location-source',
                 'paint': {
-                    'circle-radius': 8,
-                    'circle-color': '#FF4444',
-                    'circle-stroke-color': '#FFFFFF',
-                    'circle-stroke-width': 3,
-                    'circle-opacity': 1
+                    'circle-radius': 25,
+                    'circle-color': '#4A90E2',
+                    'circle-opacity': 0.1,
+                    'circle-stroke-color': '#4A90E2',
+                    'circle-stroke-width': 1,
+                    'circle-stroke-opacity': 0.3
                 }
             });
 
-            // Add pulsing animation layer
+            // Add pulsing animation layer (subtle)
             mapRef.current.addLayer({
                 'id': 'user-location-pulse',
                 'type': 'circle',
                 'source': 'user-location-source',
                 'paint': {
                     'circle-radius': 15,
-                    'circle-color': '#FF4444',
-                    'circle-opacity': 0.4,
-                    'circle-stroke-color': '#FF4444',
-                    'circle-stroke-width': 1,
-                    'circle-stroke-opacity': 0.8
+                    'circle-color': '#4A90E2',
+                    'circle-opacity': 0.2
                 }
             });
 
-            // Center map on position
-            mapRef.current.setCenter([position.lng, position.lat]);
+            // Add car icon marker
+            if (!mapRef.current.hasImage('car-icon')) {
+                const carImage = new Image(32, 32);
+                carImage.onload = () => {
+                    mapRef.current.addImage('car-icon', carImage);
 
-            console.log('Location layer added successfully');
+                    mapRef.current.addLayer({
+                        'id': 'user-location',
+                        'type': 'symbol',
+                        'source': 'user-location-source',
+                        'layout': {
+                            'icon-image': 'car-icon',
+                            'icon-size': 1,
+                            'icon-rotation-alignment': 'map',
+                            'icon-allow-overlap': true,
+                            'icon-ignore-placement': true
+                        }
+                    });
+                };
+                carImage.src = createCarIcon(heading);
+            } else {
+                mapRef.current.addLayer({
+                    'id': 'user-location',
+                    'type': 'symbol',
+                    'source': 'user-location-source',
+                    'layout': {
+                        'icon-image': 'car-icon',
+                        'icon-size': 1,
+                        'icon-rotation-alignment': 'map',
+                        'icon-allow-overlap': true,
+                        'icon-ignore-placement': true
+                    }
+                });
+            }
+
+            // Smooth camera movement like Uber
+            mapRef.current.easeTo({
+                center: [position.lng, position.lat],
+                duration: 1000,
+                easing: (t) => t * (2 - t)
+            });
+
+            console.log('Uber-style marker added successfully');
 
         } catch (error) {
-            console.error('Error adding location layer:', error);
+            console.error('Error adding Uber-style marker:', error);
         }
     };
 
-    const updateLocationLayer = (position) => {
+    const updateUberStyleMarker = (position) => {
         if (!mapRef.current || !isMapReady) return;
 
         try {
@@ -147,26 +210,43 @@ const LiveTracking = () => {
                     }]
                 });
 
-                // Center map on new position
-                mapRef.current.setCenter([position.lng, position.lat]);
+                // Update car icon rotation if heading changed
+                if (mapRef.current.hasImage('car-icon')) {
+                    const carImage = new Image(32, 32);
+                    carImage.onload = () => {
+                        mapRef.current.updateImage('car-icon', carImage);
+                    };
+                    carImage.src = createCarIcon(heading);
+                }
+
+                // Smooth camera movement
+                mapRef.current.easeTo({
+                    center: [position.lng, position.lat],
+                    duration: 1000,
+                    easing: (t) => t * (2 - t)
+                });
             } else {
-                // Create new layer if source doesn't exist
-                addLocationLayer(position);
+                addUberStyleMarker(position);
             }
         } catch (error) {
-            console.error('Error updating location layer:', error);
-            // Fallback: recreate the layer
-            addLocationLayer(position);
+            console.error('Error updating Uber-style marker:', error);
+            addUberStyleMarker(position);
         }
     };
 
-    // Initial position and location watching
+    // Enhanced geolocation to track heading
     useEffect(() => {
         navigator.geolocation.getCurrentPosition(
             (position) => {
-                const { latitude, longitude } = position.coords;
+                const { latitude, longitude, heading: deviceHeading } = position.coords;
                 const newPosition = { lat: latitude, lng: longitude };
                 setCurrentPosition(newPosition);
+
+                // Update heading if available
+                if (deviceHeading !== null && deviceHeading !== undefined) {
+                    setHeading(deviceHeading);
+                }
+
                 console.log('Initial position:', latitude, longitude);
             },
             (error) => {
@@ -181,9 +261,14 @@ const LiveTracking = () => {
 
         const watchId = navigator.geolocation.watchPosition(
             (position) => {
-                const { latitude, longitude } = position.coords;
+                const { latitude, longitude, heading: deviceHeading } = position.coords;
                 const newPosition = { lat: latitude, lng: longitude };
                 setCurrentPosition(newPosition);
+
+                // Update heading if available
+                if (deviceHeading !== null && deviceHeading !== undefined) {
+                    setHeading(deviceHeading);
+                }
             },
             (error) => {
                 console.error('Error watching position:', error);
@@ -192,7 +277,7 @@ const LiveTracking = () => {
                 enableHighAccuracy: true,
                 timeout: 5000,
                 maximumAge: 30000,
-                distanceFilter: 10
+                distanceFilter: 5
             }
         );
 
@@ -203,19 +288,22 @@ const LiveTracking = () => {
         };
     }, []);
 
-    // Periodic position updates
-    // Modified periodic updates with better timeout handling
+    // Periodic position updates with heading
     useEffect(() => {
         const updatePosition = () => {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    const { latitude, longitude } = position.coords;
+                    const { latitude, longitude, heading: deviceHeading } = position.coords;
                     const newPosition = { lat: latitude, lng: longitude };
                     console.log('Position updated:', latitude, longitude);
                     setCurrentPosition(newPosition);
+
+                    // Update heading if available
+                    if (deviceHeading !== null && deviceHeading !== undefined) {
+                        setHeading(deviceHeading);
+                    }
                 },
                 (error) => {
-                    // Simply log timeout errors without spamming console
                     if (error.code === 3) {
                         console.warn('Position update skipped - GPS timeout');
                     } else {
@@ -223,31 +311,33 @@ const LiveTracking = () => {
                     }
                 },
                 {
-                    enableHighAccuracy: false, // Changed from true to false
-                    timeout: 10000, // Increased from 5000 to 10000
-                    maximumAge: 120000 // Accept positions up to 2 minutes old
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 60000
                 }
             );
         };
 
-        const intervalId = setInterval(updatePosition, 3000); // Increased from 1000 to 3000ms
+        const intervalId = setInterval(updatePosition, 2000);
         return () => clearInterval(intervalId);
     }, []);
-
 
     // Update marker when position changes
     useEffect(() => {
         if (isMapReady && currentPosition) {
-            updateLocationLayer(currentPosition);
+            updateUberStyleMarker(currentPosition);
         }
-    }, [currentPosition, isMapReady]);
+    }, [currentPosition, isMapReady, heading]);
 
     return (
-        <div
-            ref={mapContainerRef}
-            style={containerStyle}
-            id="ola-map-container"
-        />
+        <div className="w-full h-full">
+            {/* Map container */}
+            <div
+                ref={mapContainerRef}
+                className="w-full h-full"
+                id="ola-map-container"
+            />
+        </div>
     );
 };
 

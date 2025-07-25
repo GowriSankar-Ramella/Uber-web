@@ -55,8 +55,8 @@ const CaptainRiding = () => {
             </div>
 
             <div className='h-screen fixed w-screen top-0 z-[-1]'>
-                {/* <LiveTracking /> */}
-                <img className='h-full w-full object-cover' src='https://miro.medium.com/v2/resize:fit:1280/0*gwMx05pqII5hbfmX.gif' alt='map-image' />
+                <LiveTracking />
+                {/* <img className='h-full w-full object-cover' src='https://miro.medium.com/v2/resize:fit:1280/0*gwMx05pqII5hbfmX.gif' alt='map-image' /> */}
             </div>
 
         </div>
