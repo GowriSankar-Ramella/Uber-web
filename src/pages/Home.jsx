@@ -11,6 +11,7 @@ import WaitingForDriver from '../components/WaitingForDriver';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from "react-redux"
 import { createSocketConnection } from '../utils/socket';
+import LiveTracking from '../components/LiveTracking';
 
 
 const Home = () => {
@@ -197,7 +198,8 @@ const Home = () => {
         <div className='h-screen relative overflow-hidden'>
             <img className='w-16 absolute left-5 top-5' src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Uber_logo_2018.png" alt="" />
             <div className='h-screen w-screen'>
-                <img className='h-full w-full object-cover' src='https://miro.medium.com/v2/resize:fit:1280/0*gwMx05pqII5hbfmX.gif' alt='map-image' />
+                {/* <img className='h-full w-full object-cover' src='https://miro.medium.com/v2/resize:fit:1280/0*gwMx05pqII5hbfmX.gif' alt='map-image' /> */}
+                <LiveTracking />
             </div>
             <div className=' flex flex-col justify-end h-screen absolute top-0 w-full'>
                 <div className='h-[30%] p-6 bg-white relative'>
