@@ -96,6 +96,7 @@ const Home = () => {
         e.preventDefault()
     }
 
+    // Updated GSAP effects with better state management
     useGSAP(function () {
         if (panelOpen) {
             gsap.to(panelRef.current, {
@@ -140,9 +141,9 @@ const Home = () => {
         }
     }, [confirmRidePanel])
 
-    // MAIN FIX: Only show vehicleFound when confirmRidePanel is false
+    // Fixed: Better state management for vehicleFound panel
     useGSAP(function () {
-        if (vehicleFound && !confirmRidePanel) {
+        if (vehicleFound && !confirmRidePanel && !vehiclePanel) {
             gsap.to(vehicleFoundRef.current, {
                 transform: 'translateY(0)'
             })
@@ -151,7 +152,7 @@ const Home = () => {
                 transform: 'translateY(100%)'
             })
         }
-    }, [vehicleFound, confirmRidePanel]) // Added confirmRidePanel dependency
+    }, [vehicleFound, confirmRidePanel, vehiclePanel])
 
     useGSAP(function () {
         if (waitingForDriver) {
@@ -166,8 +167,13 @@ const Home = () => {
     }, [waitingForDriver])
 
     async function findTrip() {
-        setVehiclePanel(true)
+        // Close all other panels first
         setPanelOpen(false)
+        setConfirmRidePanel(false)
+        setVehicleFound(false)
+        setWaitingForDriver(false)
+
+        setVehiclePanel(true)
 
         try {
             const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/ride/get-fare`, {
@@ -196,10 +202,15 @@ const Home = () => {
 
     return (
         <div className='h-screen relative overflow-hidden'>
-            <img className='w-16 absolute left-5 top-5 z-50' src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Uber_logo_2018.png" alt="" />
+            {/* Hide logo and logout button when panel is open */}
+            <img
+                className={`w-16 absolute left-5 top-5 z-50 transition-opacity duration-300 ${panelOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Uber_logo_2018.png"
+                alt=""
+            />
             <button
                 onClick={() => navigate('/user/logout')}
-                className='absolute right-5 top-5 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 transition-colors duration-200 z-50'
+                className={`absolute right-5 top-5 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 transition-all duration-300 z-50 ${panelOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
                 title="Logout"
             >
                 <i className="ri-logout-box-r-line text-xl text-gray-700"></i>
@@ -260,7 +271,7 @@ const Home = () => {
                 </div>
             </div>
 
-            {/* Added height constraints to prevent overflow */}
+            {/* Updated z-index values to prevent overlapping */}
             <div ref={vehiclePanelRef} className='fixed w-full z-10 bottom-0 translate-y-full bg-white px-3 py-10 pt-12 max-h-[85vh] overflow-y-auto'>
                 <VehiclePanel
                     selectVehicle={setVehicleType}
@@ -290,7 +301,6 @@ const Home = () => {
                     setVehicleFound={setVehicleFound} />
             </div>
 
-            {/* Fixed: Added translate-y-full class */}
             <div ref={waitingForDriverRef} className='fixed w-full z-40 bottom-0 translate-y-full bg-white px-3 py-6 pt-12 max-h-[85vh] overflow-y-auto'>
                 <WaitingForDriver
                     ride={ride}

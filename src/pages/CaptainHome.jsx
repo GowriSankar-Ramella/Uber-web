@@ -70,7 +70,6 @@ const CaptainHome = () => {
 
 
     async function confirmRide() {
-
         const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/ride/confirm`, {
             rideId: ride._id,
             captainId: captain._id,
@@ -78,14 +77,20 @@ const CaptainHome = () => {
             withCredentials: true
         })
 
+        // Better state management - close first panel before opening second
         setRidePopupPanel(false)
         setConfirmRidePopupPanel(true)
-
     }
 
+    // Add state cleanup function
+    const resetAllPanels = () => {
+        setRidePopupPanel(false)
+        setConfirmRidePopupPanel(false)
+    }
 
+    // Better GSAP effects with conflict prevention
     useGSAP(function () {
-        if (ridePopupPanel) {
+        if (ridePopupPanel && !confirmRidePopupPanel) {
             gsap.to(ridePopupPanelRef.current, {
                 transform: 'translateY(0)'
             })
@@ -94,10 +99,10 @@ const CaptainHome = () => {
                 transform: 'translateY(100%)'
             })
         }
-    }, [ridePopupPanel])
+    }, [ridePopupPanel, confirmRidePopupPanel])
 
     useGSAP(function () {
-        if (confirmRidePopupPanel) {
+        if (confirmRidePopupPanel && !ridePopupPanel) {
             gsap.to(confirmRidePopupPanelRef.current, {
                 transform: 'translateY(0)'
             })
@@ -106,11 +111,12 @@ const CaptainHome = () => {
                 transform: 'translateY(100%)'
             })
         }
-    }, [confirmRidePopupPanel])
+    }, [confirmRidePopupPanel, ridePopupPanel])
 
     return (
         <div className='h-screen'>
-            <div className='fixed p-6 top-0 flex items-center justify-between w-screen z-50'>
+            {/* Fixed: Conditional hiding of header elements */}
+            <div className={`fixed p-6 top-0 flex items-center justify-between w-screen z-50 transition-opacity duration-300 ${ridePopupPanel || confirmRidePopupPanel ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                 <img className='w-16' src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Uber_logo_2018.png" alt="" />
                 <button
                     onClick={() => navigate('/captain/logout')}
@@ -121,12 +127,13 @@ const CaptainHome = () => {
                 </button>
             </div>
             <div className='h-3/5'>
-                {/* <img className='h-full w-full object-cover' src="https://miro.medium.com/v2/resize:fit:1400/0*gwMx05pqII5hbfmX.gif" alt="" /> */}
                 <LiveTracking />
             </div>
             <div className='h-2/5 p-6'>
                 <CaptainDetails />
             </div>
+
+            {/* Fixed: Different z-index values to prevent overlapping */}
             <div ref={ridePopupPanelRef} className='fixed w-full z-10 bottom-0 translate-y-full bg-white px-3 py-10 pt-12'>
                 <RidePopUp
                     ride={ride}
@@ -135,10 +142,13 @@ const CaptainHome = () => {
                     confirmRide={confirmRide}
                 />
             </div>
-            <div ref={confirmRidePopupPanelRef} className='fixed w-full h-screen z-10 bottom-0 translate-y-full bg-white px-3 py-10 pt-12'>
+
+            <div ref={confirmRidePopupPanelRef} className='fixed w-full h-screen z-20 bottom-0 translate-y-full bg-white px-3 py-10 pt-12'>
                 <ConfirmRidePopUp
                     ride={ride}
-                    setConfirmRidePopupPanel={setConfirmRidePopupPanel} setRidePopupPanel={setRidePopupPanel} />
+                    setConfirmRidePopupPanel={setConfirmRidePopupPanel}
+                    setRidePopupPanel={setRidePopupPanel}
+                />
             </div>
         </div>
     )

@@ -40,17 +40,15 @@ const RidePopUp = (props) => {
                 </div>
                 <div className='mt-5 w-full '>
                     <button onClick={() => {
+                        // Fixed: Close current panel before opening next one
+                        props.setRidePopupPanel(false)
                         props.setConfirmRidePopupPanel(true)
                         props.confirmRide()
-
                     }} className=' bg-green-600 w-full text-white font-semibold p-2 px-10 rounded-lg'>Accept</button>
 
                     <button onClick={() => {
                         props.setRidePopupPanel(false)
-
                     }} className='mt-2 w-full bg-gray-300 text-gray-700 font-semibold p-2 px-10 rounded-lg'>Ignore</button>
-
-
                 </div>
             </div>
         </div>
