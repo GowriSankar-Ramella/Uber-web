@@ -9,7 +9,7 @@ export const UserLogout = () => {
     useEffect(() => {
         const logoutUser = async () => {
             try {
-                const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/users/logout`, {}, {
+                const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/user/logout`, {
                     withCredentials: true
                 })
 

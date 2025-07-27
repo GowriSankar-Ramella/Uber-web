@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import CaptainDetails from '../components/CaptainDetails'
 import RidePopUp from '../components/RidePopUp'
 import { useGSAP } from '@gsap/react'
@@ -20,6 +20,7 @@ const CaptainHome = () => {
     const confirmRidePopupPanelRef = useRef(null)
     const [ride, setRide] = useState(null)
     const captain = useSelector(store => store.captain?.captain)
+    const navigate = useNavigate()
 
     useEffect(() => {
         if (!captain) return
@@ -109,11 +110,15 @@ const CaptainHome = () => {
 
     return (
         <div className='h-screen'>
-            <div className='fixed p-6 top-0 flex items-center justify-between w-screen'>
+            <div className='fixed p-6 top-0 flex items-center justify-between w-screen z-50'>
                 <img className='w-16' src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Uber_logo_2018.png" alt="" />
-                <Link to='/captain-home' className=' h-10 w-10 bg-white flex items-center justify-center rounded-full'>
+                <button
+                    onClick={() => navigate('/captain/logout')}
+                    className='h-10 w-10 bg-white flex items-center justify-center rounded-full shadow-lg hover:bg-gray-100 transition-colors duration-200'
+                    title="Logout"
+                >
                     <i className="text-lg font-medium ri-logout-box-r-line"></i>
-                </Link>
+                </button>
             </div>
             <div className='h-3/5'>
                 {/* <img className='h-full w-full object-cover' src="https://miro.medium.com/v2/resize:fit:1400/0*gwMx05pqII5hbfmX.gif" alt="" /> */}

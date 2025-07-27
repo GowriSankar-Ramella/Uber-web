@@ -196,7 +196,14 @@ const Home = () => {
 
     return (
         <div className='h-screen relative overflow-hidden'>
-            <img className='w-16 absolute left-5 top-5' src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Uber_logo_2018.png" alt="" />
+            <img className='w-16 absolute left-5 top-5 z-50' src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Uber_logo_2018.png" alt="" />
+            <button
+                onClick={() => navigate('/user/logout')}
+                className='absolute right-5 top-5 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 transition-colors duration-200 z-50'
+                title="Logout"
+            >
+                <i className="ri-logout-box-r-line text-xl text-gray-700"></i>
+            </button>
             <div className='h-screen w-screen'>
                 {/* <img className='h-full w-full object-cover' src='https://miro.medium.com/v2/resize:fit:1280/0*gwMx05pqII5hbfmX.gif' alt='map-image' /> */}
                 <LiveTracking />

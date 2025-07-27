@@ -14,6 +14,8 @@ import { checkCaptainStatus } from './utils/captainSlice'
 import { checkAuthStatus } from './utils/userSlice'
 import CaptainRiding from './pages/CaptainRiding'
 import Riding from './pages/Riding'
+import UserLogout from './pages/UserLogout'
+import CaptainLogout from './pages/CaptainLogout'
 
 function App() {
   const dispatch = useDispatch()
@@ -30,8 +32,10 @@ function App() {
         <Route path="/signup" element={<UserSignup />} />
         <Route path="/home" element={<UserProtect><Home /></UserProtect>} />
         <Route path='/riding' element={<UserProtect><Riding /></UserProtect>} />
+        <Route path="/user/logout" element={<UserLogout />} />
         <Route path='/captain-riding' element={<CaptainRiding />} />
         <Route path="/captain-login" element={<Captainlogin />} />
+        <Route path="/captain/logout" element={<CaptainLogout />} />
         <Route path="/captain-signup" element={<CaptainSignup />} />
         <Route path="/captain-home" element={<CaptainProtect><CaptainHome /></CaptainProtect>} />
       </Routes>

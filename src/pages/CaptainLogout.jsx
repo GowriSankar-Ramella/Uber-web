@@ -10,7 +10,7 @@ export const CaptainLogout = () => {
     useEffect(() => {
         const logoutCaptain = async () => {
             try {
-                const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/captains/logout`, {}, {
+                const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/captain/logout`, {
                     withCredentials: true
                 })
 
