@@ -4,11 +4,7 @@ let socket = null;
 
 export const createSocketConnection = () => {
     if (!socket) {
-        if (location.hostname === "localhost") {
-            socket = io(import.meta.env.VITE_BASE_URL);
-        } else {
-            socket = io("/", { path: "/api/socket.io" });
-        }
+        socket = io(import.meta.env.VITE_BASE_URL);
     }
     return socket;
 };
